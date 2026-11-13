@@ -11,6 +11,7 @@ publisher: IBGE
 
 raw_dir: data/raw/brasil
 interim_dir: data/interim/bra/pnadc_visita1
+catalog_dir: catalog   # derived metadata, committed to the repository
 
 encoding:
   sas_input: latin-1   # IBGE ships the SAS program in ISO-8859-1
@@ -20,6 +21,16 @@ design:
   person_weight: V1032   # "Peso COM calibração"
   strata: Estrato        # "Estrato"
   psu: UPA               # "Unidade Primária de Amostragem"
+
+# How to read IBGE's dictionary spreadsheet (see lacharm.metadata.ibge_dictionary).
+dictionary:
+  header_rows: 3
+  # Headings that open a top-level module; any other heading is a sub-module.
+  # (Patterns are single-quoted so YAML leaves the regex backslashes alone.)
+  module_heading_pattern: '^(Parte\b|Variáveis Derivadas|Pesos Replicados)'
+  # Phrase in a module heading that states who answers that module.
+  universe_pattern: '(moradores|pessoas) de \d+ anos ou mais de idade'
+  not_applicable_label: "Não aplicável"
 
 years:
   2024:

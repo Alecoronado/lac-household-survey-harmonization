@@ -6,7 +6,7 @@
 SURVEY ?= config/surveys/bra_pnadc_visita1.yaml
 YEAR ?= 2024
 
-.PHONY: help install test lint format ingest all
+.PHONY: help install test lint format ingest catalog all
 
 help:
 	@echo "make install  - create the virtual environment from uv.lock and install git hooks"
@@ -14,6 +14,7 @@ help:
 	@echo "make lint     - run ruff (lint + format check)"
 	@echo "make format   - auto-format and auto-fix with ruff"
 	@echo "make ingest   - raw fixed-width microdata -> Parquet, with validation report"
+	@echo "make catalog  - dictionary -> variable catalog, with discrepancy report"
 	@echo "make all      - rebuild everything from the raw files (grows phase by phase)"
 
 install:
@@ -35,5 +36,9 @@ format:
 ingest:
 	uv run lacharm ingest --survey $(SURVEY) --year $(YEAR)
 
-# Full pipeline from the raw files. Each phase appends its step here.
-all: ingest
+# Publisher's dictionary -> catalog/<survey>_<year>.json + reports/catalog_<survey>_<year>.md
+catalog:
+	uv run lacharm catalog --survey $(SURVEY) --year $(YEAR)
+
+# Full pipeline from the raw files, in order. Each phase appends its step here.
+all: ingest catalog

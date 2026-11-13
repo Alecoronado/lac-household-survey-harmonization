@@ -24,6 +24,13 @@ def build_parser() -> argparse.ArgumentParser:
     ingest.add_argument("--year", type=int, required=True, help="Survey year to ingest.")
     ingest.set_defaults(handler=_ingest)
 
+    catalog = subcommands.add_parser(
+        "catalog", help="Build the variable catalog from the dictionary and cross-check it."
+    )
+    catalog.add_argument("--survey", type=Path, required=True, help="Survey YAML file.")
+    catalog.add_argument("--year", type=int, required=True, help="Survey year.")
+    catalog.set_defaults(handler=_catalog)
+
     return parser
 
 
@@ -42,6 +49,22 @@ def _ingest(args: argparse.Namespace) -> int:
     logging.info("Sum of %s: %.0f", result.weight_variable, result.weight_sum)
     if result.population_diff_pct is not None:
         logging.info("Difference vs official population: %+.4f%%", result.population_diff_pct)
+    logging.info("Report: %s", report_path)
+    return 0
+
+
+def _catalog(args: argparse.Namespace) -> int:
+    from lacharm.config import load_survey_config
+    from lacharm.metadata.pipeline import run_catalog, write_report
+
+    config = load_survey_config(args.survey)
+    result = run_catalog(config, args.year)
+
+    report_path = REPORTS_DIR / f"catalog_{config.survey_id}_{args.year}.md"
+    write_report(result, report_path)
+
+    logging.info("Coverage of the input program: %.1f%%", result.layout.coverage_pct)
+    logging.info("Catalog: %s", result.json_path)
     logging.info("Report: %s", report_path)
     return 0
 

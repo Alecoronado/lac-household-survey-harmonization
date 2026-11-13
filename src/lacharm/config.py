@@ -49,6 +49,15 @@ class Design(_StrictModel):
     psu: str
 
 
+class DictionaryConfig(_StrictModel):
+    """How to read the publisher's variable dictionary."""
+
+    header_rows: int
+    module_heading_pattern: str
+    universe_pattern: str
+    not_applicable_label: str
+
+
 class SurveyConfig(_StrictModel):
     survey_id: str
     country: str = Field(pattern=r"^[A-Z]{3}$")  # ISO 3166-1 alpha-3
@@ -56,8 +65,10 @@ class SurveyConfig(_StrictModel):
     publisher: str
     raw_dir: Path
     interim_dir: Path
+    catalog_dir: Path
     encoding: Encoding
     design: Design
+    dictionary: DictionaryConfig
     years: dict[int, YearFiles]
 
     def files_for(self, year: int) -> YearFiles:
