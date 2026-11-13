@@ -6,8 +6,8 @@ LLM-assisted harmonization of Latin American household surveys, with automated
 quality controls and design-based poverty and inequality indicators.
 
 > **Status: work in progress.** Done so far: project setup (Phase 0),
-> ingestion of the 2024 microdata to Parquet (Phase 1) and the variable
-> catalog (Phase 2). Results, the architecture
+> ingestion of the 2024 microdata to Parquet (Phase 1), the variable catalog
+> (Phase 2) and the harmonized target schema (Phase 3). Results, the architecture
 > diagram and limitations are added as each phase lands.
 
 ## Problem
@@ -73,6 +73,15 @@ streamed from the zip archive in chunks, so nothing is extracted to disk.
 The catalog keeps IBGE's original Portuguese text. It is cross-checked against
 the SAS input program and against the values actually present in the data;
 every discrepancy is reported in [docs/data_issues.md](docs/data_issues.md).
+
+**Harmonized schema** ([reference](docs/harmonized_schema.md),
+[YAML](config/harmonized_schema.yaml)): 38 variables at person and household
+level, in six blocks (identification and design, demographics, education,
+labor, income, housing). It follows the IDB's harmonized household surveys for
+the variable list and category codes, and SEDLAC for the definition of
+household membership and per capita income. Each variable is declared as
+`constant`, `mapped` (proposed by the LLM from source variables) or `derived`
+(computed from other harmonized variables, identically for every country).
 
 ## Data access
 

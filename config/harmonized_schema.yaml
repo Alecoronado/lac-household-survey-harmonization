@@ -1,0 +1,554 @@
+# Harmonized target schema for Latin American and Caribbean household surveys.
+#
+# This file describes the destination every survey is mapped to. It names no
+# country and no source variable: survey-specific knowledge lives in
+# config/surveys/ and mappings/. The LLM mapping step (Phase 4) receives each
+# variable below as its "target".
+#
+# Validated by lacharm.schema; a human-readable version is generated in
+# docs/harmonized_schema.md (run `make schema`).
+
+schema_version: "1.0"
+
+description: >-
+  Person- and household-level variables for poverty, inequality and labor
+  market analysis, comparable across countries and years.
+
+references:
+  - name: "IDB Harmonized Household Surveys of Latin America and the Caribbean (SCL Data)"
+    url: "https://github.com/EL-BID/armonizacion_microdatos_encuestas_hogares_scl"
+    consulted: 2026-11-13
+    used_for: >-
+      Variable list, category codes and the idb_equivalent crosswalk
+      (_DOCS/Labels&ExternalVars_Harmonized_DataBank.do).
+  - name: "SEDLAC Methodological Guide (CEDLAS and The World Bank), October 2025"
+    url: "https://www.cedlas.econo.unlp.edu.ar/wp/wp-content/uploads/Guia_SEDLAC.pdf"
+    consulted: 2026-11-13
+    used_for: >-
+      Definition of household membership, household per capita income and
+      labor informality.
+
+conventions:
+  missing_values: >-
+    Missing is always null. Sentinel codes such as 9 or 99 are never used. For
+    variables with a universe, null means the person or household is outside it.
+  household_membership: >-
+    Lodgers, live-in domestic employees and relatives of domestic employees are
+    not household members: they are assumed not to share the household budget.
+    They are excluded from household size and from household income. This follows
+    SEDLAC. The IDB databank is stricter and excludes every non-relative.
+  income: >-
+    Incomes are monthly, in local currency. Where a survey reports both usual and
+    actual labor income, usual income is used. A null individual income counts as
+    zero when household income is added up.
+  not_applied: >-
+    Two adjustments made by SEDLAC are deliberately not applied: imputed rent of
+    owner-occupied housing is not added to income, and rural incomes are not
+    increased by 15%.
+
+variables:
+
+  # --- Identification and sampling design -----------------------------------
+
+  - name: country
+    block: identification
+    level: person
+    type: string
+    origin: constant
+    definition: Country of the survey, ISO 3166-1 alpha-3 code.
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: pais_c
+
+  - name: year
+    block: identification
+    level: person
+    type: integer
+    origin: constant
+    definition: Reference year of the survey.
+    range: {min: 1980, max: 2100}
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: anio_c
+
+  - name: household_id
+    block: identification
+    level: person
+    type: string
+    origin: mapped
+    definition: >-
+      Identifier of the household, unique within a country and year. Built from
+      the survey's own household key.
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: idh_ch
+
+  - name: person_id
+    block: identification
+    level: person
+    type: string
+    origin: mapped
+    definition: >-
+      Identifier of the person, unique within a country and year. Built from the
+      household key plus the person's order number in the household.
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: idp_ci
+
+  - name: weight
+    block: identification
+    level: person
+    type: float
+    origin: mapped
+    definition: >-
+      Expansion factor of the person: the number of people in the population the
+      respondent represents. The calibrated weight recommended by the publisher
+      for annual estimates.
+    range: {min: 0, exclusive_min: true}
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: factor_ci
+
+  - name: strata
+    block: identification
+    level: person
+    type: string
+    origin: mapped
+    definition: Sampling stratum, as defined by the survey design.
+    nullable: false
+    missing: Not allowed.
+
+  - name: psu
+    block: identification
+    level: person
+    type: string
+    origin: mapped
+    definition: Primary sampling unit, as defined by the survey design.
+    nullable: false
+    missing: Not allowed.
+
+  - name: urban
+    block: identification
+    level: household
+    type: category
+    origin: mapped
+    definition: >-
+      Whether the dwelling is in an urban area, using the country's own official
+      definition of urban.
+    allowed_values: {1: Urban, 0: Rural}
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: zona_c
+
+  - name: region
+    block: identification
+    level: household
+    type: string
+    origin: mapped
+    definition: >-
+      First-level administrative division where the dwelling is located (state,
+      department or province), as the official code used by the country.
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: region_c
+
+  # --- Demographics ---------------------------------------------------------
+
+  - name: sex
+    block: demographics
+    level: person
+    type: category
+    origin: mapped
+    definition: Sex of the person.
+    allowed_values: {1: Male, 2: Female}
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: sexo_ci
+
+  - name: age
+    block: demographics
+    level: person
+    type: integer
+    origin: mapped
+    definition: Age in completed years at the survey reference date.
+    unit: years
+    range: {min: 0, max: 130}
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: edad_ci
+
+  - name: relationship
+    block: demographics
+    level: person
+    type: category
+    origin: mapped
+    definition: Relationship to the head of the household.
+    allowed_values:
+      1: Head
+      2: Spouse or partner
+      3: Child (including stepchild)
+      4: Other relative
+      5: Other non-relative (including lodgers)
+      6: Domestic employee or relative of a domestic employee
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: relacion_ci
+
+  - name: household_member
+    block: demographics
+    level: person
+    type: category
+    origin: mapped
+    definition: >-
+      Whether the person counts as a household member for household size and per
+      capita income. Lodgers, live-in domestic employees and relatives of domestic
+      employees do not.
+    allowed_values: {1: Member, 0: Not a member}
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: miembros_ci
+
+  - name: ethnicity
+    block: demographics
+    level: person
+    type: category
+    origin: mapped
+    definition: >-
+      Self-reported race or ethnicity, grouped into the three categories used by
+      the IDB.
+    allowed_values:
+      1: Indigenous
+      2: Afro-descendant
+      3: Other
+    nullable: true
+    missing: Null when not reported or not asked.
+    idb_equivalent: afroind_ci
+
+  - name: household_size
+    block: demographics
+    level: household
+    type: integer
+    origin: derived
+    derived_from: [household_member]
+    definition: Number of household members (persons with household_member = 1).
+    unit: persons
+    range: {min: 1, max: 60}
+    nullable: false
+    missing: Not allowed.
+    idb_equivalent: nmiembros_ch
+
+  # --- Education ------------------------------------------------------------
+
+  - name: literate
+    block: education
+    level: person
+    type: category
+    origin: mapped
+    definition: Whether the person can read and write.
+    allowed_values: {1: "Yes", 0: "No"}
+    universe: Persons at or above the age from which the survey asks about education.
+    nullable: true
+    missing: Null outside the universe.
+
+  - name: attends_school
+    block: education
+    level: person
+    type: category
+    origin: mapped
+    definition: Whether the person currently attends school at any level.
+    allowed_values: {1: "Yes", 0: "No"}
+    universe: Persons at or above the age from which the survey asks about education.
+    nullable: true
+    missing: Null outside the universe.
+    idb_equivalent: asiste_ci
+
+  - name: years_education
+    block: education
+    level: person
+    type: integer
+    origin: mapped
+    definition: Completed years of formal education.
+    unit: years
+    range: {min: 0, max: 25}
+    universe: Persons at or above the age from which the survey asks about education.
+    nullable: true
+    missing: Null outside the universe or when the level cannot be determined.
+    idb_equivalent: aedu_ci
+
+  - name: education_level
+    block: education
+    level: person
+    type: category
+    origin: mapped
+    definition: >-
+      Highest level of formal education attained. Primary, secondary and tertiary
+      follow the country's own system; the mapping of national levels to these
+      categories is documented per survey.
+    allowed_values:
+      1: No education
+      2: Primary incomplete
+      3: Primary complete
+      4: Secondary incomplete
+      5: Secondary complete
+      6: Tertiary incomplete
+      7: Tertiary complete
+    universe: Persons at or above the age from which the survey asks about education.
+    nullable: true
+    missing: Null outside the universe or when the level cannot be determined.
+    idb_equivalent: "eduno_ci, edupi_ci, edupc_ci, edusi_ci, edusc_ci, eduui_ci, eduuc_ci"
+
+  # --- Labor ----------------------------------------------------------------
+
+  - name: labor_status
+    block: labor
+    level: person
+    type: category
+    origin: mapped
+    definition: >-
+      Labor force status in the reference week, using the country's official
+      definitions of employment and unemployment.
+    allowed_values:
+      1: Employed
+      2: Unemployed
+      3: Out of the labor force
+    universe: Persons of working age, as defined by the survey.
+    nullable: true
+    missing: Null below working age.
+    idb_equivalent: condocup_ci
+
+  - name: employed
+    block: labor
+    level: person
+    type: category
+    origin: derived
+    derived_from: [labor_status]
+    definition: Whether the person is employed (labor_status = 1).
+    allowed_values: {1: "Yes", 0: "No"}
+    universe: Persons of working age, as defined by the survey.
+    nullable: true
+    missing: Null below working age.
+    idb_equivalent: emp_ci
+
+  - name: unemployed
+    block: labor
+    level: person
+    type: category
+    origin: derived
+    derived_from: [labor_status]
+    definition: Whether the person is unemployed (labor_status = 2).
+    allowed_values: {1: "Yes", 0: "No"}
+    universe: Persons of working age, as defined by the survey.
+    nullable: true
+    missing: Null below working age.
+    idb_equivalent: desemp_ci
+
+  - name: employment_type
+    block: labor
+    level: person
+    type: category
+    origin: mapped
+    definition: Type of employment relationship in the main job.
+    allowed_values:
+      1: Employer
+      2: Self-employed
+      3: Employee
+      4: Unpaid family worker
+    universe: Employed persons.
+    nullable: true
+    missing: Null when not employed.
+    idb_equivalent: categopri_ci
+
+  - name: formal
+    block: labor
+    level: person
+    type: category
+    origin: mapped
+    definition: >-
+      Whether the worker contributes to a social security or pension system
+      through any job (the legal definition of formality).
+    allowed_values: {1: Formal, 0: Informal}
+    universe: Employed persons.
+    nullable: true
+    missing: Null when not employed.
+    idb_equivalent: formal_ci
+
+  - name: hours_main
+    block: labor
+    level: person
+    type: integer
+    origin: mapped
+    definition: Hours usually worked per week in the main job.
+    unit: hours per week
+    range: {min: 0, max: 168}
+    universe: Employed persons.
+    nullable: true
+    missing: Null when not employed.
+    idb_equivalent: horaspri_ci
+
+  - name: hours_total
+    block: labor
+    level: person
+    type: integer
+    origin: mapped
+    definition: Hours usually worked per week in all jobs.
+    unit: hours per week
+    range: {min: 0, max: 168}
+    universe: Employed persons.
+    nullable: true
+    missing: Null when not employed.
+    idb_equivalent: horastot_ci
+
+  # --- Income ---------------------------------------------------------------
+
+  - name: labor_income_main
+    block: income
+    level: person
+    type: float
+    origin: mapped
+    definition: Usual monthly income from the main job.
+    unit: local currency per month, current prices
+    range: {min: 0}
+    universe: Employed persons with remuneration in the main job.
+    nullable: true
+    missing: Null outside the universe.
+    idb_equivalent: ylmpri_ci
+
+  - name: labor_income
+    block: income
+    level: person
+    type: float
+    origin: mapped
+    definition: Usual monthly income from all jobs.
+    unit: local currency per month, current prices
+    range: {min: 0}
+    universe: Employed persons with remuneration in any job.
+    nullable: true
+    missing: Null outside the universe. Counted as zero in household income.
+    idb_equivalent: ylm_ci
+
+  - name: nonlabor_income
+    block: income
+    level: person
+    type: float
+    origin: mapped
+    definition: >-
+      Monthly income from all sources other than work: pensions, public and
+      private transfers, capital income and other sources.
+    unit: local currency per month, current prices
+    range: {min: 0}
+    universe: Persons who received income from a non-labor source.
+    nullable: true
+    missing: Null outside the universe. Counted as zero in household income.
+    idb_equivalent: ynlm_ci
+
+  - name: household_income
+    block: income
+    level: household
+    type: float
+    origin: derived
+    derived_from: [labor_income, nonlabor_income, household_member]
+    definition: >-
+      Total monthly household income: labor income plus non-labor income, added
+      over household members only.
+    unit: local currency per month, current prices
+    range: {min: 0}
+    nullable: false
+    missing: Not allowed. A household with no reported income has zero.
+
+  - name: household_income_pc
+    block: income
+    level: household
+    type: float
+    origin: derived
+    derived_from: [household_income, household_size]
+    definition: Household per capita income, household_income divided by household_size.
+    unit: local currency per person per month, current prices
+    range: {min: 0}
+    nullable: false
+    missing: Not allowed.
+
+  - name: household_income_pc_real
+    block: income
+    level: household
+    type: float
+    origin: derived
+    derived_from: [household_income_pc]
+    definition: >-
+      Household per capita income at the prices of the survey's reference period,
+      using the publisher's deflators.
+    unit: local currency per person per month, reference-period prices
+    range: {min: 0}
+    nullable: false
+    missing: Not allowed.
+
+  # --- Housing and basic services -------------------------------------------
+
+  - name: dwelling_tenure
+    block: housing
+    level: household
+    type: category
+    origin: mapped
+    definition: Tenure status of the dwelling.
+    allowed_values:
+      1: Owned (paid off or being paid)
+      2: Rented
+      3: Other (ceded, occupied or other arrangement)
+    nullable: true
+    missing: Null when not reported.
+    idb_equivalent: viviprop_ch
+
+  - name: bedrooms
+    block: housing
+    level: household
+    type: integer
+    origin: mapped
+    definition: Number of rooms permanently used for sleeping.
+    unit: rooms
+    range: {min: 0, max: 50}
+    nullable: true
+    missing: Null when not reported.
+    idb_equivalent: dorm_ch
+
+  - name: piped_water
+    block: housing
+    level: household
+    type: category
+    origin: mapped
+    definition: Whether the dwelling is supplied by a piped water network.
+    allowed_values: {1: "Yes", 0: "No"}
+    nullable: true
+    missing: Null when not reported.
+    idb_equivalent: aguared_ch
+
+  - name: electricity
+    block: housing
+    level: household
+    type: category
+    origin: mapped
+    definition: Whether the dwelling has electricity, from the grid or another source.
+    allowed_values: {1: "Yes", 0: "No"}
+    nullable: true
+    missing: Null when not reported.
+    idb_equivalent: luz_ch
+
+  - name: toilet
+    block: housing
+    level: household
+    type: category
+    origin: mapped
+    definition: Whether the household has a bathroom or toilet facility.
+    allowed_values: {1: "Yes", 0: "No"}
+    nullable: true
+    missing: Null when not reported.
+    idb_equivalent: bano_ch
+
+  - name: internet
+    block: housing
+    level: household
+    type: category
+    origin: mapped
+    definition: Whether any resident has access to the internet at home.
+    allowed_values: {1: "Yes", 0: "No"}
+    nullable: true
+    missing: Null when not reported.
+    idb_equivalent: internet_ch

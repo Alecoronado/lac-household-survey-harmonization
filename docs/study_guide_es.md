@@ -205,7 +205,69 @@ diferencias sin corregirlas en silencio.
 
 ## Fase 3 — Esquema armonizado
 
-_Pendiente._
+**Qué se hizo.** Se definió el destino común: 38 variables a nivel persona y
+hogar, declaradas en `config/harmonized_schema.yaml` y validadas con pydantic.
+La versión legible está en `docs/harmonized_schema.md`.
+
+**Qué es armonizar.** Cada país pregunta distinto: Brasil registra "condição
+no domicílio" con 19 categorías y otro país usará 8. Armonizar es llevar cada
+encuesta a una misma variable con los mismos valores (`relationship`, 6
+categorías), para poder comparar. El esquema define ese destino; el mapeo
+(Fase 4) define cómo llega cada encuesta.
+
+**Las dos referencias.**
+
+- **BID (SCL Data).** Su repositorio público tiene la lista de variables
+  armonizadas y un script por país y año. Los nombres llevan sufijo de nivel:
+  `_ci` persona, `_ch` hogar, `_c` país. De ahí salen la lista de variables,
+  los códigos de las categorías y el campo `idb_equivalent`.
+- **SEDLAC (CEDLAS y Banco Mundial).** Su guía metodológica define el
+  concepto central, el ingreso per cápita familiar, y quién cuenta como
+  miembro del hogar. De ahí salen esas dos definiciones y la de informalidad.
+
+**Decisiones clave.**
+
+- **El esquema no nombra ningún país ni variable fuente.** Un test lo
+  verifica. Todo lo específico de una encuesta vive en `config/surveys/` y en
+  `mappings/`.
+- **Nombres en inglés con equivalencia BID.** `household_income_pc` se lee
+  solo, y `idb_equivalent` deja el cruce explícito con el banco del BID.
+- **Tres orígenes de variable.** `constant` sale de la configuración (país,
+  año). `mapped` se construye desde variables fuente: es lo que propone el
+  LLM (30 variables). `derived` se calcula desde otras variables armonizadas,
+  igual para todos los países (6 variables). Separarlos reduce el trabajo del
+  LLM a lo que de verdad depende de cada encuesta.
+- **El ingreso del hogar es derivado, no mapeado.** Se calcula sumando los
+  ingresos de los miembros. Como el IBGE publica su propia versión
+  (`VD5008`), comparar ambas será un control de calidad de la Fase 6.
+- **Faltante es siempre `null`.** No hay códigos 9 o 99. Si una variable
+  tiene universo (por ejemplo, ocupados), nulo significa "fuera del
+  universo". El validador exige que toda variable con universo admita nulos.
+- **Miembro del hogar según SEDLAC y el IBGE.** No cuentan los pensionistas,
+  los empleados domésticos que viven en el hogar ni sus parientes, porque se
+  asume que no comparten el presupuesto. El BID es más estricto: excluye a
+  todos los no parientes. Es una diferencia real entre las dos referencias.
+- **Formalidad por la definición legal:** cotiza a la seguridad social.
+  SEDLAC también ofrece una definición "productiva" (tipo de empleo y tamaño
+  de la firma), que no se usa aquí.
+- **Dos ajustes de SEDLAC que no se aplican:** la renta implícita de la
+  vivienda propia y el aumento del 15% a los ingresos rurales. Están
+  declarados en el esquema como limitación y explicarán parte de las
+  diferencias en la validación de la Fase 8.
+- **Validación estricta.** El modelo rechaza una categoría sin códigos, una
+  derivada que no dice de qué depende, nombres duplicados y campos
+  desconocidos. El esquema es el contrato de las fases 4, 6 y 7; un error en
+  él debe fallar al cargarlo, no tres fases después.
+
+**Preguntas de repaso.**
+
+1. ¿Por qué el ingreso per cápita del hogar se declara como variable derivada
+   en vez de mapearlo directamente a la variable que ya publica el IBGE?
+2. El BID, SEDLAC y el IBGE no definen igual quién es miembro del hogar.
+   ¿Cuál es la diferencia, cuál elegiste y cómo afecta a la pobreza medida?
+3. SEDLAC suma la renta implícita de la vivienda y aumenta 15% los ingresos
+   rurales. Tú no. ¿En qué dirección cambia eso tu tasa de pobreza frente a
+   la de SEDLAC, y por qué decidiste no hacerlo?
 
 ## Fase 4 — Mapeo con LLM
 
