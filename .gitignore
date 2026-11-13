@@ -1,0 +1,33 @@
+# --- Data: microdata must never be committed ---
+data/
+*.zip
+*.parquet
+
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- LLM call cache (local only) ---
+.cache/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# --- Tooling ---
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
