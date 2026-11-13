@@ -1,0 +1,38 @@
+# Brazil - PNAD Continua, annual file, visit 1 (IBGE).
+# Visit 1 carries the full income module (all sources), which is what poverty
+# measurement needs.
+#
+# Every variable name below was checked against IBGE's SAS input file for the year.
+
+survey_id: bra_pnadc_visita1
+country: BRA
+name: "PNAD Contínua anual, visita 1"
+publisher: IBGE
+
+raw_dir: data/raw/brasil
+interim_dir: data/interim/bra/pnadc_visita1
+
+encoding:
+  sas_input: latin-1   # IBGE ships the SAS program in ISO-8859-1
+  microdata: latin-1   # single-byte, so byte positions equal character positions
+
+design:
+  person_weight: V1032   # "Peso COM calibração"
+  strata: Estrato        # "Estrato"
+  psu: UPA               # "Unidade Primária de Amostragem"
+
+years:
+  2024:
+    microdata_zip: PNADC_2024_visita1_20251119.zip
+    sas_input: input_PNADC_2024_visita1_20251119.txt
+    dictionary: dicionario_PNADC_microdados_2024_visita1_20251119.xls
+    deflator: deflator_PNADC_2024.xls
+    official_population:
+      value: 211853000
+      unit: persons
+      # Published in thousands (211853). IBGE computes this table from the same
+      # survey (first visits), so it checks that rows and weights were read
+      # correctly; it is not an independent benchmark.
+      source: "IBGE, SIDRA table 6407 (População residente, por sexo e grupos de idade), PNAD Contínua anual, variable 606, Brasil, 2024, total"
+      url: "https://apisidra.ibge.gov.br/values/t/6407/n1/all/v/606/p/2024/c2/6794/c58/95253"
+      consulted: 2026-11-13
