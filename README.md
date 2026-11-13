@@ -5,8 +5,9 @@
 LLM-assisted harmonization of Latin American household surveys, with automated
 quality controls and design-based poverty and inequality indicators.
 
-> **Status: work in progress.** Phase 0 (project setup) is complete. Results,
-> the architecture diagram and limitations are added as each phase lands.
+> **Status: work in progress.** Done so far: project setup (Phase 0) and
+> ingestion of the 2024 microdata to Parquet (Phase 1). Results, the architecture
+> diagram and limitations are added as each phase lands.
 
 ## Problem
 
@@ -39,7 +40,24 @@ Requires [uv](https://docs.astral.sh/uv/) and GNU Make.
 make install   # create the environment from uv.lock and install git hooks
 make test      # run the unit tests
 make lint      # run ruff (lint + format check)
+make all       # rebuild everything from the raw files (needs the data, see below)
 ```
+
+## Results so far
+
+**Ingestion, PNAD Contínua 2024, visit 1** ([full report](reports/ingest_bra_pnadc_visita1_2024.md)):
+
+| | |
+|---|---|
+| Rows (persons) | 381,815 |
+| Variables | 484 |
+| Raw fixed-width file | 1.41 GB |
+| Parquet (zstd) | 151 MB |
+| Sum of calibrated weights (`V1032`) | 211,852,978 |
+| Population published by IBGE (SIDRA table 6407) | 211,853 thousand |
+
+The column layout is parsed from IBGE's own SAS input program, and the file is
+streamed from the zip archive in chunks, so nothing is extracted to disk.
 
 ## Data access
 
