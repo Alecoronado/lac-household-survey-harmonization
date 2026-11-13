@@ -117,6 +117,13 @@ def _make_survey(tmp_path, data_lines, newline="\r\n", official_population=None)
             "publisher": "Test",
             "raw_dir": raw_dir,
             "interim_dir": tmp_path / "interim",
+            "catalog_dir": tmp_path / "catalog",
+            "dictionary": {
+                "header_rows": 1,
+                "module_heading_pattern": "^Parte",
+                "universe_pattern": r"pessoas de \d+ anos ou mais",
+                "not_applicable_label": "Não aplicável",
+            },
             "encoding": {"sas_input": "latin-1", "microdata": "latin-1"},
             "design": {"person_weight": "V1032", "strata": "UF", "psu": "UF"},
             "years": {2024: year_files},
