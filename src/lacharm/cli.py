@@ -7,6 +7,8 @@ from pathlib import Path
 from lacharm import __version__
 
 REPORTS_DIR = Path("reports")
+SCHEMA_PATH = Path("config/harmonized_schema.yaml")
+SCHEMA_DOC_PATH = Path("docs/harmonized_schema.md")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -30,6 +32,13 @@ def build_parser() -> argparse.ArgumentParser:
     catalog.add_argument("--survey", type=Path, required=True, help="Survey YAML file.")
     catalog.add_argument("--year", type=int, required=True, help="Survey year.")
     catalog.set_defaults(handler=_catalog)
+
+    schema = subcommands.add_parser(
+        "schema", help="Validate the harmonized schema and regenerate its documentation."
+    )
+    schema.add_argument("--schema", type=Path, default=SCHEMA_PATH, help="Schema YAML file.")
+    schema.add_argument("--doc", type=Path, default=SCHEMA_DOC_PATH, help="Markdown output.")
+    schema.set_defaults(handler=_schema)
 
     return parser
 
@@ -66,6 +75,18 @@ def _catalog(args: argparse.Namespace) -> int:
     logging.info("Coverage of the input program: %.1f%%", result.layout.coverage_pct)
     logging.info("Catalog: %s", result.json_path)
     logging.info("Report: %s", report_path)
+    return 0
+
+
+def _schema(args: argparse.Namespace) -> int:
+    from lacharm.schema import load_schema, render_markdown
+
+    schema = load_schema(args.schema)  # raises if the YAML is inconsistent
+    args.doc.parent.mkdir(parents=True, exist_ok=True)
+    args.doc.write_text(render_markdown(schema), encoding="utf-8", newline="\n")
+
+    logging.info("Schema %s is valid: %d variables", schema.schema_version, len(schema.variables))
+    logging.info("Documentation: %s", args.doc)
     return 0
 
 

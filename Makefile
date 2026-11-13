@@ -6,13 +6,14 @@
 SURVEY ?= config/surveys/bra_pnadc_visita1.yaml
 YEAR ?= 2024
 
-.PHONY: help install test lint format ingest catalog all
+.PHONY: help install test lint format schema ingest catalog all
 
 help:
 	@echo "make install  - create the virtual environment from uv.lock and install git hooks"
 	@echo "make test     - run the unit tests"
 	@echo "make lint     - run ruff (lint + format check)"
 	@echo "make format   - auto-format and auto-fix with ruff"
+	@echo "make schema   - validate the harmonized schema and regenerate docs/harmonized_schema.md"
 	@echo "make ingest   - raw fixed-width microdata -> Parquet, with validation report"
 	@echo "make catalog  - dictionary -> variable catalog, with discrepancy report"
 	@echo "make all      - rebuild everything from the raw files (grows phase by phase)"
@@ -32,6 +33,10 @@ format:
 	uv run ruff check --fix .
 	uv run ruff format .
 
+# Validate config/harmonized_schema.yaml -> docs/harmonized_schema.md
+schema:
+	uv run lacharm schema
+
 # Raw fixed-width microdata -> typed Parquet + reports/ingest_<survey>_<year>.md
 ingest:
 	uv run lacharm ingest --survey $(SURVEY) --year $(YEAR)
@@ -41,4 +46,4 @@ catalog:
 	uv run lacharm catalog --survey $(SURVEY) --year $(YEAR)
 
 # Full pipeline from the raw files, in order. Each phase appends its step here.
-all: ingest catalog
+all: schema ingest catalog
