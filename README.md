@@ -5,8 +5,9 @@
 LLM-assisted harmonization of Latin American household surveys, with automated
 quality controls and design-based poverty and inequality indicators.
 
-> **Status: work in progress.** Done so far: project setup (Phase 0) and
-> ingestion of the 2024 microdata to Parquet (Phase 1). Results, the architecture
+> **Status: work in progress.** Done so far: project setup (Phase 0),
+> ingestion of the 2024 microdata to Parquet (Phase 1) and the variable
+> catalog (Phase 2). Results, the architecture
 > diagram and limitations are added as each phase lands.
 
 ## Problem
@@ -59,6 +60,20 @@ make all       # rebuild everything from the raw files (needs the data, see belo
 The column layout is parsed from IBGE's own SAS input program, and the file is
 streamed from the zip archive in chunks, so nothing is extracted to disk.
 
+**Variable catalog** ([full report](reports/catalog_bra_pnadc_visita1_2024.md),
+[catalog](catalog/bra_pnadc_visita1_2024.json)):
+
+| | |
+|---|---|
+| Variables in the catalog | 484 (100% of the SAS input program) |
+| Position or width mismatches between dictionary and input | 0 |
+| Coded variables | 193, with 802 category labels |
+| Values in the data missing from the dictionary (190 categorical variables) | 0 |
+
+The catalog keeps IBGE's original Portuguese text. It is cross-checked against
+the SAS input program and against the values actually present in the data;
+every discrepancy is reported in [docs/data_issues.md](docs/data_issues.md).
+
 ## Data access
 
 **This repository contains no microdata.** The `data/` folder is git-ignored.
@@ -81,6 +96,7 @@ Exact file names vary by year and release date.
 
 ```
 config/      harmonized target schema and one YAML per survey
+catalog/     variable catalog derived from each survey's dictionary (JSON)
 src/lacharm/ pipeline code (ingest, metadata, mapping, transform, quality, indicators)
 mappings/    proposed (raw LLM output), approved (human-reviewed), gold (manual reference)
 reports/     aggregate QC and indicator reports
