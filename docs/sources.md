@@ -8,6 +8,14 @@ here. Nothing is taken from memory.
 |---|---|---|---|---|---|
 | Resident population, Brazil, 2024 | 211,853 thousand | IBGE, SIDRA table 6407 "População residente, por sexo e grupos de idade" (PNAD Contínua anual, accumulated first visits), variable 606, total | <https://sidra.ibge.gov.br/tabela/6407> (API: <https://apisidra.ibge.gov.br/values/t/6407/n1/all/v/606/p/2024/c2/6794/c58/95253>) | 2026-11-13 | Ingest validation: sum of `V1032` |
 
+## Methodological references
+
+| Reference | What it was used for | URL | Date consulted |
+|---|---|---|---|
+| IDB, Harmonized Household Surveys of Latin America and the Caribbean (SCL Data), repository `EL-BID/armonizacion_microdatos_encuestas_hogares_scl`, file `_DOCS/Labels&ExternalVars_Harmonized_DataBank.do` | List of harmonized variables, their labels and category codes; `idb_equivalent` crosswalk in the schema | <https://github.com/EL-BID/armonizacion_microdatos_encuestas_hogares_scl> | 2026-11-13 |
+| IDB, same repository, `BRA/PNADC/program/BRA_2022a_variablesBID.do` | How the IDB defines household membership (`miembros_ci = relacion_ci < 5`) and builds keys for PNAD Contínua. Read for the definitions only; not used as a mapping. | <https://github.com/EL-BID/armonizacion_microdatos_encuestas_hogares_scl/tree/master/BRA/PNADC/program> | 2026-11-13 |
+| CEDLAS and The World Bank, "Guía Metodológica SEDLAC", version of October 2025 | Household membership (lodgers, domestic employees and their families excluded), household per capita income, imputed rent, 15% rural adjustment, definitions of informality | <https://www.cedlas.econo.unlp.edu.ar/wp/wp-content/uploads/Guia_SEDLAC.pdf> | 2026-11-13 |
+
 ## Data files
 
 | File | Publisher | URL | Date downloaded |
