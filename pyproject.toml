@@ -8,7 +8,11 @@ license = "MIT"
 authors = [{ name = "Alessandro Coronado" }]
 # Runtime dependencies are added in the phase that first needs them,
 # so every dependency in this list is actually used by the code.
-dependencies = []
+dependencies = [
+    "polars>=2.1.0",
+    "pydantic>=2.14.3",
+    "pyyaml>=6.0.3",
+]
 
 [project.scripts]
 lacharm = "lacharm.cli:main"
